@@ -6,19 +6,17 @@ limit = 14
 comments_limit = 30
 comments_range = []
 
+subreddit = 'funny' # subreddit name
+listing = 'top' #['hot', 'top', 'controvercial', 'new', rising]
 timeframe = 'week'  #['hour', 'day', 'week', 'month', 'year, 'all']
 
-listing = 'top' #['hot', 'top', 'controvercial', 'new', rising]
+
+
 
 test_post = f'https://www.reddit.com/r/funny/comments/11svz0o/i_made_a_song_entirely_of_artists_singing_yeah/.json?limit={comments_limit}'
 
 
-subreddit = 'funny' # subreddit name
-
-try:
-    base_url = f'https://www.reddit.com/r/{subreddit}/{listing}.json?limit={limit}&t={timeframe}'
-except:
-    print("can't make a request")
+base_url = f'https://www.reddit.com/r/{subreddit}/{listing}.json?limit={limit}&t={timeframe}'
 
 
 def make_request(url):
@@ -27,40 +25,48 @@ def make_request(url):
     return request.json()
 
 
-reddit_post = make_request(base_url)
+
+# get reddit post
+def request_reddit_data(subreddit, listing, limit, timeframe):
+    url = f'https://www.reddit.com/r/{subreddit}/{listing}.json?limit={limit}&t={timeframe}'
+    request = requests.get(url,
+                        headers={'User-agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Safari/537.36)'})
+    return request.json()
+
+
+# get titles comments, images and video urls
+def filter_reddit_data(reddit_data_json):
+    title = reddit_data_json['data']['children'][0]['data']['title']
+    img_url = reddit_data_json['data']['children'][0]['data']['url']
+    vid_url = reddit_data_json['data']['children'][0]['data']['media']['reddit_video']['fallback_url']
+    audio_url = 'https://v.redd.it/' + vid_url.split('/')[3] + '/DASH_audio.mp4'
+    post_type = reddit_data_json['data']['children'][0]['data']['post_hint']
+    permalink = reddit_data_json['data']['children'][0]['data']['permalink']
+    return title, img_url, vid_url, audio_url, post_type, permalink
+
+
+# get comments in a given post
+def get_comments(permalink, comments_limit):
+    url = f'https://www.reddit.com{permalink}.json?limit={comments_limit}'
+    request = requests.get(url,
+                        headers={'User-agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Safari/537.36)'})
+    return request.json()
+
+
+
+reddit_post = request_reddit_data('funny', 'top', 1, 'day')
 post_comments = make_request(test_post)
+
+
+
 
 # save reddit post json
 # with open('data.json', 'w') as f:
 #     json.dump(base_url, f, ensure_ascii=True, indent=4)
 
+# with open('comments.json', 'w') as f:
+#     json.dump(post_comments, f, ensure_ascii=True, indent=4)
 
-with open('comments.json', 'w') as f:
-    json.dump(post_comments, f, ensure_ascii=True, indent=4)
-
-
-
-# get titles comments, images and video urls
-# title = reddit_post['data']['children'][12]['data']['title']
-# img_url = reddit_post['data']['children'][12]['data']['url']
-# vid_url = reddit_post['data']['children'][12]['data']['media']['reddit_video']['fallback_url']
-# audio_url = 'https://v.redd.it/' + vid_url.split('/')[3] + '/DASH_audio.mp4'
-
-# post_type = reddit_post['data']['children'][12]['data']['post_hint']
-permalink = reddit_post['data']['children'][12]['data']['permalink']
-
-comments = f'https://www.reddit.com/{permalink}.json?'
-
-
-# comment = post_comments[1]['data']['children'][1]['data']['body']
-# author = post_comments[1]['data']['children'][1]['data']['author']
-# ups = post_comments[1]['data']['children'][1]['data']['ups']
-
-
-
-# stickied = post_comments[1]['data']['children'][0]['data']['stickied']
-
-# print(stickied, type(stickied), int(stickied))
 
 
 ###########
