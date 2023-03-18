@@ -3,17 +3,15 @@ import json
 import os
 
 limit = 14
-comments_limit = 10
-
+comments_limit = 30
+comments_range = []
 
 timeframe = 'week'  #['hour', 'day', 'week', 'month', 'year, 'all']
 
 listing = 'top' #['hot', 'top', 'controvercial', 'new', rising]
 
-test_post = f'https://www.reddit.com/r/funny/comments/11qhab2/my_hometown_just_unveiled_a_911_memorial_at_the/.json?limit={comments_limit}'
+test_post = f'https://www.reddit.com/r/funny/comments/11svz0o/i_made_a_song_entirely_of_artists_singing_yeah/.json?limit={comments_limit}'
 
-
-'https://www.reddit.com/r/funny/comments/11qhab2/my_hometown_just_unveiled_a_911_memorial_at_the/.json?'
 
 subreddit = 'funny' # subreddit name
 
@@ -37,8 +35,8 @@ post_comments = make_request(test_post)
 #     json.dump(base_url, f, ensure_ascii=True, indent=4)
 
 
-# with open('comments.json', 'w') as f:
-#     json.dump(post_comments, f, ensure_ascii=True, indent=4)
+with open('comments.json', 'w') as f:
+    json.dump(post_comments, f, ensure_ascii=True, indent=4)
 
 
 
@@ -58,17 +56,34 @@ comments = f'https://www.reddit.com/{permalink}.json?'
 # author = post_comments[1]['data']['children'][1]['data']['author']
 # ups = post_comments[1]['data']['children'][1]['data']['ups']
 
-print('Here are some of the funny comments, enjoy:')
-for i in range(1,8):
-    comment = post_comments[1]['data']['children'][i]['data']['body']
-    author = post_comments[1]['data']['children'][i]['data']['author']
-    ups = post_comments[1]['data']['children'][i]['data']['ups']
-
-    print(f'"{comment}" -by {author}, {ups} upvotes')
 
 
+# stickied = post_comments[1]['data']['children'][0]['data']['stickied']
+
+# print(stickied, type(stickied), int(stickied))
 
 
+###########
+
+def get_comments(post_comments):
+    comment_list = []
+    stickied = post_comments[1]['data']['children'][0]['data']['stickied']
+    for i in range(0 + int(stickied), 5 + int(stickied)):
+        author = post_comments[1]['data']['children'][i]['data']['author']
+        ups = post_comments[1]['data']['children'][i]['data']['ups']
+        if author != '[deleted]':
+            comment = post_comments[1]['data']['children'][i]['data']['body']
+            # print(f'"{comment}" -by {author}, {ups} upvotes')
+            comment_list.append(f'--------------\n"{comment}" -by {author}, {ups} upvotes')
+    return comment_list
+
+x = get_comments(post_comments)
+
+print('And here are some of the funny comments, enjoy:')
+
+for i in x:
+    print(i)
+###################
 
 # print(title, '\n', img_url, '\n', vid_url,'\n', audio_url,'\n', post_type)
 
