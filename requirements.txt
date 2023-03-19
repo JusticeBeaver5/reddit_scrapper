@@ -1,4 +1,3 @@
-tweepy
 python_dotenv
 flask
 flask_sslify

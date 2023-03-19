@@ -3,7 +3,6 @@ from flask import request
 from flask import jsonify
 from flask_sslify import SSLify
 import requests
-import tweepy
 import re
 import time
 import json
