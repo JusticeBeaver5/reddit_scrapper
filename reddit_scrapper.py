@@ -59,30 +59,46 @@ def filter_comments(post_comments_json):
     return comment_list
 
 
+def get_latest_post_id(reddit_data_json):
+    sorted_posts_list = []
+    posts = {}
+    n = len(reddit_data_json['data']['children'])
+    for i in range(n):
+        post_time = reddit_data_json['data']['children'][i]['data']['created']
+        post_time = time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(post_time))
+        post_id = reddit_data_json['data']['children'][i]['data']['id']
+        posts[post_id] = post_time
+    sorted_ids = dict(sorted(posts.items(), key=lambda item:item[1]))
+    for key, value in sorted_ids.items():
+        sorted_posts_list.append((key, value))
+    return sorted_posts_list[n-1]
 
-reddit_posts = request_reddit_data('funny', 'top', 10, 'day')
+
+reddit_post = request_reddit_data('funny', 'top', 5, 'day')
+x = get_latest_post_id(reddit_post)
+print(x)
 
 
-def get_post_time(reddit_data_json, postnum):
-    post_time = []
-    post_time.append(reddit_data_json['data']['children'][postnum]['data']['created'])
-    return int(post_time[0])
-
-print(len(reddit_posts['data']['children']))
+# sorted_posts = dict(sorted(x.items(), key=lambda item:item[1]))
+# print('sorted:\n', sorted_posts)
 
 
-times = []
-for i in range(len(reddit_posts['data']['children'])):
-    creation_date = get_post_time(reddit_posts, i)
+# print(len(reddit_posts['data']['children']))
+
+
+# times = []
+# x = len(reddit_posts['data']['children'])
+# for i in range(x):
+#     creation_date = get_post_time(reddit_posts, i)
     
-    times.append(time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(creation_date)))
+#     times.append(time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(creation_date)))
 
 
-print(times, '\n')
+# print(times, '\n')
 
-sorted_times = sorted(times)
-for i in sorted_times:
-    print('sorted', i)
+# sorted_times = sorted(times)
+# for i in sorted_times:
+#     print('sorted', i)
 
 
 
