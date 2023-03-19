@@ -29,7 +29,6 @@ def request_reddit_data(subreddit, listing, limit, timeframe):
     return request.json()
 
 
-# age_restricted = ['data']['children'][0]['data']['over_18']
 
 # get titles comments, images and video urls
 def filter_reddit_data(reddit_data_json):
@@ -46,7 +45,7 @@ def filter_reddit_data(reddit_data_json):
 
 
 # get comments in a given post
-def get_comments(permalink, comments_limit):
+def request_comments(permalink, comments_limit):
     url = f'https://www.reddit.com{permalink}.json?limit={comments_limit}'
     request = requests.get(url,
                         headers={'User-agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Safari/537.36)'})
@@ -68,7 +67,7 @@ def filter_comments(post_comments_json):
 
 reddit_post = request_reddit_data('funny', 'top', 1, 'day')
 data = filter_reddit_data(reddit_post)
-# post_comments = get_comments(data[3], 10)
+# post_comments = request_comments(data[3], 10)
 # x = filter_comments(post_comments)
 
 # print('And here are some of the funny comments, enjoy:')
