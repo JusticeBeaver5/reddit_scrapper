@@ -15,10 +15,10 @@ base_url = f'https://www.reddit.com/r/{subreddit}/{listing}.json?limit={limit}&t
 
 
 
-def make_request(url):
-    request = requests.get(url,
-                        headers={'User-agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Safari/537.36)'})
-    return request.json()
+# def make_request(url):
+#     request = requests.get(url,
+#                         headers={'User-agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Safari/537.36)'})
+#     return request.json()
 
 
 # get reddit post
@@ -29,17 +29,19 @@ def request_reddit_data(subreddit, listing, limit, timeframe):
     return request.json()
 
 
+# age_restricted = ['data']['children'][0]['data'][over_18]
+
 # get titles comments, images and video urls
 def filter_reddit_data(reddit_data_json):
-    # title, img_url, vid_url, audio_url, post_type, permalink = [],[],[],[],[],[]
-    title = reddit_data_json['data']['children'][0]['data']['title']
-    img_url = reddit_data_json['data']['children'][0]['data']['url']
-    # vid_url.append(reddit_data_json['data']['children'][0]['data']['media']['reddit_video']['fallback_url'])
-    # audio_url.append('https://v.redd.it/' + vid_url.split('/')[3] + '/DASH_audio.mp4')
-    post_type = reddit_data_json['data']['children'][0]['data']['post_hint']
-    permalink = reddit_data_json['data']['children'][0]['data']['permalink']
-
-    return title, img_url, post_type, permalink
+    title, img_url, vid_url, audio_url, post_type, permalink = [],[],[],[],[],[]
+    title.append(reddit_data_json['data']['children'][0]['data']['title'])
+    img_url.append(reddit_data_json['data']['children'][0]['data']['url'])
+    vid_url.append(reddit_data_json['data']['children'][0]['data']['media']['reddit_video']['fallback_url'])
+    audio_url.append('https://v.redd.it/' + vid_url[0].split('/')[3] + '/DASH_audio.mp4')
+    post_type.append(reddit_data_json['data']['children'][0]['data']['post_hint'])
+    permalink.append(reddit_data_json['data']['children'][0]['data']['permalink'])
+    return title, img_url, vid_url, audio_url, post_type, permalink
+    
 
 
 # get comments in a given post
@@ -59,24 +61,24 @@ def filter_comments(post_comments_json):
         ups = post_comments_json[1]['data']['children'][i]['data']['ups']
         if author != '[deleted]':
             comment = post_comments_json[1]['data']['children'][i]['data']['body']
-            comment_list.append(f'--------------\n"{comment}" -by {author}, {ups} upvotes')
+            comment_list.append(f'--------------\n"{comment}" -by {author}, {ups} upvotes\n--------------')
     return comment_list
 
 
 reddit_post = request_reddit_data('funny', 'top', 1, 'day')
 data = filter_reddit_data(reddit_post)
-post_comments = get_comments(data[3], 10)
-x = filter_comments(post_comments)
+# post_comments = get_comments(data[3], 10)
+# x = filter_comments(post_comments)
 
-print('And here are some of the funny comments, enjoy:')
+# print('And here are some of the funny comments, enjoy:')
 
-for i in x:
-    print(i)
+# for i in x:
+#     print(i)
 
-print(f'source https://www.reddit.com{data[3]}')
+# print(f'source https://www.reddit.com{data[3]}')
 
 
-
+print(data)
 
 
 # save reddit post json
