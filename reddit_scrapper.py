@@ -29,10 +29,11 @@ def request_reddit_data(subreddit, listing, limit, timeframe):
     return request.json()
 
 
-# age_restricted = ['data']['children'][0]['data'][over_18]
+# age_restricted = ['data']['children'][0]['data']['over_18']
 
 # get titles comments, images and video urls
 def filter_reddit_data(reddit_data_json):
+    age_restricted = reddit_data_json['data']['children'][0]['data']['over_18']
     title, img_url, vid_url, audio_url, post_type, permalink = [],[],[],[],[],[]
     title.append(reddit_data_json['data']['children'][0]['data']['title'])
     img_url.append(reddit_data_json['data']['children'][0]['data']['url'])
@@ -40,7 +41,7 @@ def filter_reddit_data(reddit_data_json):
     audio_url.append('https://v.redd.it/' + vid_url[0].split('/')[3] + '/DASH_audio.mp4')
     post_type.append(reddit_data_json['data']['children'][0]['data']['post_hint'])
     permalink.append(reddit_data_json['data']['children'][0]['data']['permalink'])
-    return title, img_url, vid_url, audio_url, post_type, permalink
+    return title, img_url, vid_url, audio_url, post_type, permalink, age_restricted
     
 
 
