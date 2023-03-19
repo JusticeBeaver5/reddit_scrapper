@@ -2,3 +2,4 @@
 _tmp/*
 data.json
 comments.json
+.env
