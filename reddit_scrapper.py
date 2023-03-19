@@ -1,6 +1,9 @@
 import requests
 import json
 import os
+import datetime
+import time
+
 
 limit = 14
 comments_limit = 30
@@ -14,20 +17,12 @@ test_post = f'https://www.reddit.com/r/funny/comments/11svz0o/i_made_a_song_enti
 base_url = f'https://www.reddit.com/r/{subreddit}/{listing}.json?limit={limit}&t={timeframe}'
 
 
-
-# def make_request(url):
-#     request = requests.get(url,
-#                         headers={'User-agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Safari/537.36)'})
-#     return request.json()
-
-
 # get reddit post
 def request_reddit_data(subreddit, listing, limit, timeframe):
     url = f'https://www.reddit.com/r/{subreddit}/{listing}.json?limit={limit}&t={timeframe}'
     request = requests.get(url,
                         headers={'User-agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Safari/537.36)'})
     return request.json()
-
 
 
 # get titles comments, images and video urls
@@ -41,7 +36,6 @@ def filter_reddit_data(reddit_data_json):
     post_type.append(reddit_data_json['data']['children'][0]['data']['post_hint'])
     permalink.append(reddit_data_json['data']['children'][0]['data']['permalink'])
     return title, img_url, vid_url, audio_url, post_type, permalink, age_restricted
-    
 
 
 # get comments in a given post
@@ -65,8 +59,41 @@ def filter_comments(post_comments_json):
     return comment_list
 
 
-reddit_post = request_reddit_data('funny', 'top', 1, 'day')
-data = filter_reddit_data(reddit_post)
+
+reddit_posts = request_reddit_data('funny', 'top', 10, 'day')
+
+
+def get_post_time(reddit_data_json, postnum):
+    post_time = []
+    post_time.append(reddit_data_json['data']['children'][postnum]['data']['created'])
+    return int(post_time[0])
+
+print(len(reddit_posts['data']['children']))
+
+
+times = []
+for i in range(len(reddit_posts['data']['children'])):
+    creation_date = get_post_time(reddit_posts, i)
+    
+    times.append(time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(creation_date)))
+
+
+print(times, '\n')
+
+sorted_times = sorted(times)
+for i in sorted_times:
+    print('sorted', i)
+
+
+
+
+
+
+
+
+
+# reddit_post = request_reddit_data('funny', 'top', 1, 'day')
+# data = filter_reddit_data(reddit_post)
 # post_comments = request_comments(data[3], 10)
 # x = filter_comments(post_comments)
 
@@ -78,7 +105,7 @@ data = filter_reddit_data(reddit_post)
 # print(f'source https://www.reddit.com{data[3]}')
 
 
-print(data)
+# print(data)
 
 
 # save reddit post json

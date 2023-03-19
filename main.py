@@ -1,6 +1,5 @@
 from flask import Flask
 from flask import request
-from flask import jsonify
 import requests
 import time
 import json
