@@ -52,14 +52,16 @@ def filter_post_data(reddit_data_json):
     age_restricted = reddit_data_json[0]['data']['children'][0]['data']['over_18']
     title, img_url, vid_url, audio_url, post_type, permalink = [],[],[],[],[],[]
     title.append(reddit_data_json[0]['data']['children'][0]['data']['title'])
-    img_url.append(reddit_data_json[0]['data']['children'][0]['data']['url'])
+    post_type.append(reddit_data_json[0]['data']['children'][0]['data']['post_hint'])
     if reddit_data_json[0]['data']['children'][0]['data']['media']:
         vid_url.append(reddit_data_json[0]['data']['children'][0]['data']['media']['reddit_video']['fallback_url'])
         audio_url.append('https://v.redd.it/' + vid_url[0].split('/')[3] + '/DASH_audio.mp4')
-    post_type.append(reddit_data_json[0]['data']['children'][0]['data']['post_hint'])
+        img_url.append()
+    else:
+        img_url.append(reddit_data_json[0]['data']['children'][0]['data']['url'])
 
+    return title, img_url, vid_url, audio_url, age_restricted#, post_type
 
-    return title, img_url, vid_url, audio_url, post_type, age_restricted
 
 
 # get 5 best comments under post
@@ -88,7 +90,7 @@ def get_the_best_post():
     comments_list.append(f'https://www.reddit.com/r/{subreddit}/comments/{latest_id[0]}')
     return media, latest_id, comments_list
 
-print(get_the_best_post())
+# print(get_the_best_post()[0])
 
 
 
@@ -130,6 +132,7 @@ def make_video(vid_url, audio_url):
     os.system(f'ffmpeg -y -i {tmp_video_file} -i {tmp_audio_file} -c copy {result_video}')
     os.remove(tmp_video_file)
     os.remove(tmp_audio_file)
+    return result_video
 
 
 
