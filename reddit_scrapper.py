@@ -5,7 +5,7 @@ import datetime
 import time
 
 
-limit = 14
+posts_limit = 5
 comments_limit = 30
 
 subreddit = 'funny' # subreddit name
@@ -13,9 +13,6 @@ listing = 'top' #['hot', 'top', 'controvercial', 'new', rising]
 timeframe = 'week'  #['hour', 'day', 'week', 'month', 'year, 'all']
 best_comments = 5
 
-# test_post = f'https://www.reddit.com/r/funny/comments/11svz0o/i_made_a_song_entirely_of_artists_singing_yeah/.json?limit={comments_limit}'
-
-# base_url = f'https://www.reddit.com/r/{subreddit}/{listing}.json?limit={limit}&t={timeframe}'
 
 
 # get reddit post
@@ -56,9 +53,12 @@ def filter_post_data(reddit_data_json):
     title, img_url, vid_url, audio_url, post_type, permalink = [],[],[],[],[],[]
     title.append(reddit_data_json[0]['data']['children'][0]['data']['title'])
     img_url.append(reddit_data_json[0]['data']['children'][0]['data']['url'])
-    vid_url.append(reddit_data_json[0]['data']['children'][0]['data']['media']['reddit_video']['fallback_url'])
-    audio_url.append('https://v.redd.it/' + vid_url[0].split('/')[3] + '/DASH_audio.mp4')
+    if reddit_data_json[0]['data']['children'][0]['data']['media']:
+        vid_url.append(reddit_data_json[0]['data']['children'][0]['data']['media']['reddit_video']['fallback_url'])
+        audio_url.append('https://v.redd.it/' + vid_url[0].split('/')[3] + '/DASH_audio.mp4')
     post_type.append(reddit_data_json[0]['data']['children'][0]['data']['post_hint'])
+
+
     return title, img_url, vid_url, audio_url, post_type, age_restricted
 
 
@@ -75,59 +75,35 @@ def filter_comments(post_comments_json):
     return comment_list
 
 
-data = request_subreddit_posts(subreddit, 'top', 5, 'day')
-latest_id = get_latest_post_id(data)
-post_data = request_post_data(latest_id[0], 15)
-media = filter_post_data(post_data)
-comments = filter_comments(post_data)
-print(media)
-print(latest_id)
-for i in comments:
-    print(i)
+
+def get_the_best_post():
+    comments_list = []
+    data = request_subreddit_posts(subreddit, 'top', posts_limit, 'day')
+    latest_id = get_latest_post_id(data)
+    post_data = request_post_data(latest_id[0], comments_limit)
+    media = filter_post_data(post_data)
+    comments = filter_comments(post_data)
+    for i in comments:
+        comments_list.append(i)
+    comments_list.append(f'https://www.reddit.com/r/{subreddit}/comments/{latest_id[0]}')
+    return media, latest_id, comments_list
+
+print(get_the_best_post())
 
 
-
-
-
-# reddit_post = request_reddit_data('funny', 'top', 1, 'day')
-# data = filter_reddit_data(reddit_post)
-# post_comments = request_comments(data[3], 10)
-# x = filter_comments(post_comments)
-
-# print('And here are some of the funny comments, enjoy:')
-
-# for i in x:
-#     print(i)
-
-# print(f'source https://www.reddit.com{data[3]}')
-
-
-# print(data)
 
 
 # save reddit post json
-# with open('data.json', 'w') as f:
-#     json.dump(base_url, f, ensure_ascii=True, indent=4)
+def save_reddit_posts(data):
+    with open('data.json', 'w') as f:
+        json.dump(data, f, ensure_ascii=True, indent=4)
 
 def save_comments_json(comments_data):
     with open('comments.json', 'w') as f:
         json.dump(comments_data, f, ensure_ascii=True, indent=4)
 
-# save_comments_json(comments_data)
 
 
-
-# print(title, '\n', img_url, '\n', vid_url,'\n', audio_url,'\n', post_type)
-
-# if post_type == 'hosted:video':
-#     print('there is a video!')
-
-
-
-
-
-
-# print(tmp_video_file, tmp_audio_file, result_video)
 
 
 # save temp video and audio files, then make combine them using ffmpeg, then remove temp files
