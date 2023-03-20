@@ -11,54 +11,22 @@ comments_limit = 30
 subreddit = 'funny' # subreddit name
 listing = 'top' #['hot', 'top', 'controvercial', 'new', rising]
 timeframe = 'week'  #['hour', 'day', 'week', 'month', 'year, 'all']
+best_comments = 5
 
-test_post = f'https://www.reddit.com/r/funny/comments/11svz0o/i_made_a_song_entirely_of_artists_singing_yeah/.json?limit={comments_limit}'
+# test_post = f'https://www.reddit.com/r/funny/comments/11svz0o/i_made_a_song_entirely_of_artists_singing_yeah/.json?limit={comments_limit}'
 
-base_url = f'https://www.reddit.com/r/{subreddit}/{listing}.json?limit={limit}&t={timeframe}'
+# base_url = f'https://www.reddit.com/r/{subreddit}/{listing}.json?limit={limit}&t={timeframe}'
 
 
 # get reddit post
-def request_reddit_data(subreddit, listing, limit, timeframe):
+def request_subreddit_posts(subreddit, listing, limit, timeframe):
     url = f'https://www.reddit.com/r/{subreddit}/{listing}.json?limit={limit}&t={timeframe}'
     request = requests.get(url,
                         headers={'User-agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Safari/537.36)'})
     return request.json()
 
 
-# get titles comments, images and video urls
-def filter_reddit_data(reddit_data_json):
-    age_restricted = reddit_data_json['data']['children'][0]['data']['over_18']
-    title, img_url, vid_url, audio_url, post_type, permalink = [],[],[],[],[],[]
-    title.append(reddit_data_json['data']['children'][0]['data']['title'])
-    img_url.append(reddit_data_json['data']['children'][0]['data']['url'])
-    vid_url.append(reddit_data_json['data']['children'][0]['data']['media']['reddit_video']['fallback_url'])
-    audio_url.append('https://v.redd.it/' + vid_url[0].split('/')[3] + '/DASH_audio.mp4')
-    post_type.append(reddit_data_json['data']['children'][0]['data']['post_hint'])
-    permalink.append(reddit_data_json['data']['children'][0]['data']['permalink'])
-    return title, img_url, vid_url, audio_url, post_type, permalink, age_restricted
-
-
-# get comments in a given post
-def request_comments(permalink, comments_limit):
-    url = f'https://www.reddit.com{permalink}.json?limit={comments_limit}'
-    request = requests.get(url,
-                        headers={'User-agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Safari/537.36)'})
-    return request.json()
-
-
-# get 5 best comments under post
-def filter_comments(post_comments_json):
-    comment_list = []
-    stickied = post_comments_json[1]['data']['children'][0]['data']['stickied']
-    for i in range(0 + int(stickied), 5 + int(stickied)):
-        author = post_comments_json[1]['data']['children'][i]['data']['author']
-        ups = post_comments_json[1]['data']['children'][i]['data']['ups']
-        if author != '[deleted]':
-            comment = post_comments_json[1]['data']['children'][i]['data']['body']
-            comment_list.append(f'--------------\n"{comment}" -by {author}, {ups} upvotes\n--------------')
-    return comment_list
-
-
+# get posts and sort them by date, return the latest one.
 def get_latest_post_id(reddit_data_json):
     sorted_posts_list = []
     posts = {}
@@ -74,35 +42,48 @@ def get_latest_post_id(reddit_data_json):
     return sorted_posts_list[n-1]
 
 
-reddit_post = request_reddit_data('funny', 'top', 5, 'day')
-x = get_latest_post_id(reddit_post)
-print(x)
+# get comments in a given post by using post id
+def request_post_data(post_id, comments_limit):
+    url = f'https://www.reddit.com/r/{subreddit}/comments/{post_id}.json?limit={comments_limit}'
+    request = requests.get(url,
+                        headers={'User-agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Safari/537.36)'})
+    return request.json()
 
 
-# sorted_posts = dict(sorted(x.items(), key=lambda item:item[1]))
-# print('sorted:\n', sorted_posts)
+# get titles comments, images and video urls
+def filter_post_data(reddit_data_json):
+    age_restricted = reddit_data_json[0]['data']['children'][0]['data']['over_18']
+    title, img_url, vid_url, audio_url, post_type, permalink = [],[],[],[],[],[]
+    title.append(reddit_data_json[0]['data']['children'][0]['data']['title'])
+    img_url.append(reddit_data_json[0]['data']['children'][0]['data']['url'])
+    vid_url.append(reddit_data_json[0]['data']['children'][0]['data']['media']['reddit_video']['fallback_url'])
+    audio_url.append('https://v.redd.it/' + vid_url[0].split('/')[3] + '/DASH_audio.mp4')
+    post_type.append(reddit_data_json[0]['data']['children'][0]['data']['post_hint'])
+    return title, img_url, vid_url, audio_url, post_type, age_restricted
 
 
-# print(len(reddit_posts['data']['children']))
+# get 5 best comments under post
+def filter_comments(post_comments_json):
+    comment_list = []
+    stickied = post_comments_json[1]['data']['children'][0]['data']['stickied']
+    for i in range(0 + int(stickied), best_comments + int(stickied)):
+        author = post_comments_json[1]['data']['children'][i]['data']['author']
+        ups = post_comments_json[1]['data']['children'][i]['data']['ups']
+        if author != '[deleted]':
+            comment = post_comments_json[1]['data']['children'][i]['data']['body']
+            comment_list.append(f'"{comment}" -by {author}, {ups} upvotes\n--------------')
+    return comment_list
 
 
-# times = []
-# x = len(reddit_posts['data']['children'])
-# for i in range(x):
-#     creation_date = get_post_time(reddit_posts, i)
-    
-#     times.append(time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(creation_date)))
-
-
-# print(times, '\n')
-
-# sorted_times = sorted(times)
-# for i in sorted_times:
-#     print('sorted', i)
-
-
-
-
+data = request_subreddit_posts(subreddit, 'top', 5, 'day')
+latest_id = get_latest_post_id(data)
+post_data = request_post_data(latest_id[0], 15)
+media = filter_post_data(post_data)
+comments = filter_comments(post_data)
+print(media)
+print(latest_id)
+for i in comments:
+    print(i)
 
 
 
@@ -128,8 +109,11 @@ print(x)
 # with open('data.json', 'w') as f:
 #     json.dump(base_url, f, ensure_ascii=True, indent=4)
 
-# with open('comments.json', 'w') as f:
-#     json.dump(post_comments, f, ensure_ascii=True, indent=4)
+def save_comments_json(comments_data):
+    with open('comments.json', 'w') as f:
+        json.dump(comments_data, f, ensure_ascii=True, indent=4)
+
+# save_comments_json(comments_data)
 
 
 
