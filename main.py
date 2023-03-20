@@ -52,6 +52,19 @@ def send_images(chat_id, image_list, text=None, disable_notification=None):
 
 
 
+def send_photo(chat_id, photo=None, caption=None, disable_notification=None):
+    url = URL+'sendPhoto'
+    photo = ''.join(photo)
+    answer = {'chat_id':chat_id,
+                'photo':photo,
+                'caption':caption,
+                'disable_notification':disable_notification}
+    r = requests.post(url, json=answer)
+    return r.json()
+
+
+
+
 def send_video(chat_id, video=None, caption=None, disable_notification=None):
     url = URL+'sendVideo'
     answer = {'chat_id':chat_id,
@@ -143,32 +156,38 @@ def check_for_new_post(telegram_channel):
 
 
 
-def send_new_tg_message(reddit_data, channel_id, disable_notification=None):
+def send_new_tg_message(channel_id, disable_notification=None):
+    print('executing function!!')
+    reddit_data = rs.get_the_best_post()
     new_id = reddit_data[1][0]
     post_title = reddit_data[0][0][0]
     picture_list = reddit_data[0][1]
     video_list = reddit_data[0][2]
     audio_list = reddit_data[0][3]
-    for item, (pictures, vids, audio) in enumerate(zip(picture_list, video_list, audio_list)):
-        # print(item, pictures, vids, gif)
-        if vids:
-            for video in vids:
-                # print(video)
-                try:
-                    send_video(channel_id, video, post_title, disable_notification)
-                    print('video sent!', new_id, post_title, video, '\n')
-                except:
-                    print('ERROR: wrong video format', item, video, post_title, '\n')
-        elif pictures:
-            send_images(channel_id, pictures, post_title, disable_notification)
-            # send_photo(channel_id, pictures, post_title)
-            print('pictures sent!', pictures, '\n')
-        # elif gif:
-        #     send_video(channel_id, gif[0], post_title, disable_notification)
-        #     print('gif sent!\n')
-        else:
-            send_message(channel_id, post_title, disable_notification)
-            print(new_id, post_title, 'post_title sent, there are NO pictures, videos or gifs \n')
+    print(post_title)
+    print(picture_list)
+    print(video_list)
+    print(audio_list)
+    # send_message(channel_id, post_title, disable_notification=True)
+    # send_images(channel_id, picture_list, post_title, disable_notification=True)
+
+    if video_list:
+        try:
+            send_video(channel_id, video_list, post_title, disable_notification)
+            print('video sent!', new_id, post_title, video_list, '\n')
+        except:
+            print('ERROR: wrong video format', video_list, post_title, '\n')
+    elif picture_list:
+        send_images(channel_id, picture_list, post_title, disable_notification=True)
+        # send_images(channel_id, picture_list, post_title, disable_notification)
+        # send_photo(channel_id, pictures, post_title)
+        print('pictures sent!', picture_list, '\n')
+    # elif gif:
+    #     send_video(channel_id, gif[0], post_title, disable_notification)
+    #     print('gif sent!\n')
+    else:
+        send_message(channel_id, post_title, disable_notification)
+        print(new_id, post_title, 'post_title sent, there are NO pictures, videos or gifs \n')
 
 
 
@@ -186,6 +205,7 @@ def index():
             if '/start' in msg:
                 if int(chat_id) == int(myChatId):
                     send_message(chat_id, 'working!', disable_notification=True)
+                    send_new_tg_message(tg_channel, disable_notification=True)
                 else:
                     send_message(chat_id, "you're not allowed to use this bot! 🤨")
         elif 'channel_post' in r:
@@ -211,8 +231,8 @@ def index():
 #     #     thread.join()
 
 
-# delete_webhook()
-# set_webhook(webhook_host)
+delete_webhook()
+set_webhook(webhook_host)
 
 # run_threads(d)
 
