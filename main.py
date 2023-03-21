@@ -36,7 +36,7 @@ def send_message(chat_id, text, parse_mode=None, entities=None, disable_web_page
                 'disable_web_page_preview':disable_web_page_preview,
                 'disable_notification':disable_notification,}
     r = requests.post(url, json=answer)
-    print(r.json())
+    # print(r.json())
     return r.json()
 
 
@@ -63,6 +63,40 @@ def send_images(chat_id, image_list, text=None, disable_notification=None):
     r = requests.post(request_url, params)
     # print('params',params)
     print(r)
+    if r.status_code == 200:
+        return True
+    else:
+        return False
+
+
+
+
+
+def send_images_new(chat_id, image_list, text=None, parse_mode=None, entities=None, disable_web_page_preview=None, disable_notification=None):
+    # text = text.replace("'", "’")  # replace apostrophe with similar simbol ’, bug?
+    photos = list(image_list)
+    media = list()
+    for count, photo in enumerate(photos):
+        # print(photo)
+        if count == 0:
+            media.append({'type':'photo',
+                          'media':photo,
+                          'caption':text,
+                          'parse_mode':parse_mode})
+        else:
+            media.append({'type':'photo',
+                          'media':photo})
+    # print('raw media = ',media)
+    params = {
+        'chat_id': chat_id,
+        "media": str(media).replace("'", '"'),
+        'parse_mode':parse_mode,
+        'disable_web_page_preview':disable_web_page_preview,
+        'disable_notification':disable_notification}
+    request_url = URL + 'sendMediaGroup'
+    r = requests.post(request_url, params)
+    # print('params',params)
+    print(r.json())
     if r.status_code == 200:
         return True
     else:
@@ -146,9 +180,14 @@ def check_for_new_post(telegram_channel):
 
 
 
-
-
-
+table = str.maketrans({"-":r"\-", "]":r"\]", 
+                       "\\":r"\\", "^":r"\^", 
+                       "$":r"\$", "*":r"\*", 
+                       ".":r"\.", "'":r"\'", 
+                       "&":r"\&", "_":r"\_",
+                       '"':r'\"', "”":r"\”",
+                       ",":r"\,", "!":r"\!",
+                       "?":r"\?"})
 
 
 def send_new_tg_message(channel_id, disable_notification=None):
@@ -163,9 +202,20 @@ def send_new_tg_message(channel_id, disable_notification=None):
     comments = reddit_data[2][:-1]
     comments = '\n'.join(comments)
 
-    message = comments.translate(str.maketrans({"-":r"\-", "]":r"\]", "\\":r"\\", "^":r"\^", "$":r"\$", "*":r"\*", ".":r"\.", "'":r"\'", "&":r"\&", "_":r"\_"}))
-    # print(comments)
-    send_message(channel_id, f'{post_title}\nHere are top\-3 comments:\n\n{message}\n[source]({source_link})', parse_mode='MarkdownV2',disable_web_page_preview=True, disable_notification=True)
+    message = comments.translate(table)
+    post_title = post_title.translate(table)
+
+    print(post_title)
+    print(picture_list)
+    print(comments)
+    print(source_link)
+    print('total number of characters =', int(len(message)) + int(len(post_title)) + int(len(source_link)))
+
+    # message = 'blablablabla yada yada yada '
+
+    send_images_new(channel_id, picture_list, f'{post_title}\n\nHere are top\-3 comments:\n\n{message}\n[source]({source_link})', parse_mode='MarkdownV2', disable_web_page_preview=True, disable_notification=True)
+
+    # send_message(channel_id, f'{post_title}\nHere are top\-3 comments:\n\n{message}\n[source]({source_link})', parse_mode='MarkdownV2',disable_web_page_preview=True, disable_notification=True)
 
     # print('message sent!')
     # '\n'.join(get_the_best_post()[2])
