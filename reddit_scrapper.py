@@ -11,7 +11,7 @@ comments_limit = 30
 subreddit = 'funny' # subreddit name
 listing = 'top' #['hot', 'top', 'controvercial', 'new', rising]
 timeframe = 'week'  #['hour', 'day', 'week', 'month', 'year, 'all']
-best_comments = 5
+best_comments = 3
 
 
 
@@ -90,7 +90,12 @@ def get_the_best_post():
     comments_list.append(f'https://www.reddit.com/r/{subreddit}/comments/{latest_id[0]}')
     return media, latest_id, comments_list
 
-# print(get_the_best_post()[0])
+
+# d = get_the_best_post()[2]
+# source_link = d[2][-1]
+# print(d, '\n','\n')
+# l = d[:-1]
+# print(l)
 
 
 

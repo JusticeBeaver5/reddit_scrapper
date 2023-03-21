@@ -23,6 +23,24 @@ URL = f'https://api.telegram.org/bot{token}/'
 webhook_host = os.environ.get('HOST')
 
 
+
+
+# *[source](http://www.example.com/)*&parse_mode=MarkdownV2
+
+def send_message(chat_id, text, parse_mode=None, entities=None, disable_web_page_preview=None, disable_notification=None):
+    url = URL+'sendMessage'
+    answer = {'chat_id':chat_id,
+                'text':text,
+                'parse_mode':parse_mode,
+                'entities':entities,
+                'disable_web_page_preview':disable_web_page_preview,
+                'disable_notification':disable_notification,}
+    r = requests.post(url, json=answer)
+    # print(r.json())
+    return r.json()
+
+
+
 def send_images(chat_id, image_list, text=None, disable_notification=None):
     text = text.replace("'", "’")  # replace apostrophe with similar simbol ’, bug?
     photos = list(image_list)
@@ -52,19 +70,6 @@ def send_images(chat_id, image_list, text=None, disable_notification=None):
 
 
 
-def send_photo(chat_id, photo=None, caption=None, disable_notification=None):
-    url = URL+'sendPhoto'
-    photo = ''.join(photo)
-    answer = {'chat_id':chat_id,
-                'photo':photo,
-                'caption':caption,
-                'disable_notification':disable_notification}
-    r = requests.post(url, json=answer)
-    return r.json()
-
-
-
-
 def send_video(chat_id, video=None, caption=None, disable_notification=None):
     url = URL+'sendVideo'
     answer = {'chat_id':chat_id,
@@ -72,16 +77,6 @@ def send_video(chat_id, video=None, caption=None, disable_notification=None):
                 'caption':caption,
                 'disable_notification':disable_notification}
     r = requests.post(url, json=answer)
-    return r.json()
-
-
-def send_message(chat_id, text=None, disable_notification=None):
-    url = URL+'sendMessage'
-    answer = {'chat_id':chat_id,
-                'text':text,
-                'disable_notification':disable_notification}
-    r = requests.post(url, json=answer)
-    # print(r.json())
     return r.json()
 
 
@@ -164,34 +159,45 @@ def send_new_tg_message(channel_id, disable_notification=None):
     picture_list = reddit_data[0][1]
     video_list = reddit_data[0][2]
     audio_list = reddit_data[0][3]
-    print(post_title)
-    print(picture_list)
-    print(video_list)
-    print(audio_list)
-    # send_message(channel_id, post_title, disable_notification=True)
-    # send_images(channel_id, picture_list, post_title, disable_notification=True)
+    source_link = reddit_data[2][-1]
+    comments = reddit_data[2][:-1]
+    comments = '\n'.join(reddit_data[2])
+    send_message(channel_id, f'{post_title}\nHere are top 3 comments:\n[source]({source_link})', parse_mode='MarkdownV2',disable_web_page_preview=True, disable_notification=True)
+    print('message sent!')
+    # '\n'.join(get_the_best_post()[2])
 
-    if video_list:
-        try:
-            send_video(channel_id, video_list, post_title, disable_notification)
-            print('video sent!', new_id, post_title, video_list, '\n')
-        except:
-            print('ERROR: wrong video format', video_list, post_title, '\n')
-    elif picture_list:
-        send_images(channel_id, picture_list, post_title, disable_notification=True)
-        # send_images(channel_id, picture_list, post_title, disable_notification)
-        # send_photo(channel_id, pictures, post_title)
-        print('pictures sent!', picture_list, '\n')
-    # elif gif:
-    #     send_video(channel_id, gif[0], post_title, disable_notification)
-    #     print('gif sent!\n')
-    else:
-        send_message(channel_id, post_title, disable_notification)
-        print(new_id, post_title, 'post_title sent, there are NO pictures, videos or gifs \n')
+    # print(post_title)
+    # print(picture_list)
+    # print(video_list)
+    # print(audio_list)
+    # print(source_link)
+    # print(comments)
+
+    # if video_list:
+    #     try:
+    #         send_video(channel_id, video_list, post_title, disable_notification)
+    #         print('video sent!', new_id, post_title, video_list, '\n')
+    #     except:
+    #         print('ERROR: wrong video format', video_list, post_title, '\n')
+    # elif picture_list:
+    #     send_message(channel_id, 'hello', disable_notification)
+    #     # send_message(channel_id, f'{post_title}"\n"Here are top-3 comments:\n{comments}"\n"[source]({source_link})', parse_mode='MarkdownV2', disable_web_page_preview=True, disable_notification=True)
+    #     # send_images(channel_id, picture_list, post_title, disable_notification=True)
+    #     # send_photo(channel_id, pictures, post_title)
+    #     print('pictures sent!', picture_list, '\n')
+    # # elif gif:
+    # #     send_video(channel_id, gif[0], post_title, disable_notification)
+    # #     print('gif sent!\n')
+    # else:
+    #     send_message(channel_id, post_title, disable_notification)
+    #     print(new_id, post_title, 'post_title sent, there are NO pictures, videos or gifs \n')
 
 
 
+link = 'http://www.example.com/'
 
+
+test = 'test text blabla yada yada'
 
 
 @app.route('/', methods=['POST','GET'])
@@ -204,7 +210,8 @@ def index():
             print('received a private message', msg)
             if '/start' in msg:
                 if int(chat_id) == int(myChatId):
-                    send_message(chat_id, 'working!', disable_notification=True)
+                    send_message(chat_id, f'{test} *working*', parse_mode='MarkdownV2', disable_notification=True)
+                    print('message sent!')
                     send_new_tg_message(tg_channel, disable_notification=True)
                 else:
                     send_message(chat_id, "you're not allowed to use this bot! 🤨")

@@ -3,3 +3,5 @@ _tmp/*
 data.json
 comments.json
 .env
+__pycache__/reddit_scrapper.cpython-38.pyc
+.gitignore
