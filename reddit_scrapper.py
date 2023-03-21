@@ -91,8 +91,11 @@ def get_the_best_post():
     return media, latest_id, comments_list
 
 
-# d = get_the_best_post()[2]
+# d = get_the_best_post()
 # source_link = d[2][-1]
+# comments = d[2][:-1]
+
+# print(comments)
 # print(d, '\n','\n')
 # l = d[:-1]
 # print(l)

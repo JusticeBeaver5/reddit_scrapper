@@ -36,7 +36,7 @@ def send_message(chat_id, text, parse_mode=None, entities=None, disable_web_page
                 'disable_web_page_preview':disable_web_page_preview,
                 'disable_notification':disable_notification,}
     r = requests.post(url, json=answer)
-    # print(r.json())
+    print(r.json())
     return r.json()
 
 
@@ -161,9 +161,13 @@ def send_new_tg_message(channel_id, disable_notification=None):
     audio_list = reddit_data[0][3]
     source_link = reddit_data[2][-1]
     comments = reddit_data[2][:-1]
-    comments = '\n'.join(reddit_data[2])
-    send_message(channel_id, f'{post_title}\nHere are top 3 comments:\n[source]({source_link})', parse_mode='MarkdownV2',disable_web_page_preview=True, disable_notification=True)
-    print('message sent!')
+    comments = '\n'.join(comments)
+
+    message = comments.translate(str.maketrans({"-":r"\-", "]":r"\]", "\\":r"\\", "^":r"\^", "$":r"\$", "*":r"\*", ".":r"\.", "'":r"\'", "&":r"\&", "_":r"\_"}))
+    # print(comments)
+    send_message(channel_id, f'{post_title}\nHere are top\-3 comments:\n\n{message}\n[source]({source_link})', parse_mode='MarkdownV2',disable_web_page_preview=True, disable_notification=True)
+
+    # print('message sent!')
     # '\n'.join(get_the_best_post()[2])
 
     # print(post_title)
@@ -211,7 +215,6 @@ def index():
             if '/start' in msg:
                 if int(chat_id) == int(myChatId):
                     send_message(chat_id, f'{test} *working*', parse_mode='MarkdownV2', disable_notification=True)
-                    print('message sent!')
                     send_new_tg_message(tg_channel, disable_notification=True)
                 else:
                     send_message(chat_id, "you're not allowed to use this bot! 🤨")
