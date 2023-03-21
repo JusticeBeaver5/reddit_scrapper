@@ -2,3 +2,4 @@ python_dotenv
 flask
 flask_sslify
 gunicorn
+waitress
