@@ -9,7 +9,7 @@ posts_limit = 5
 comments_limit = 30
 best_comments = 2
 
-subreddit = 'funny' # subreddit name
+subreddit = 'wholesomememes' # subreddit name
 listing = 'top' #['hot', 'top', 'controvercial', 'new', rising]
 timeframe = 'week'  #['hour', 'day', 'week', 'month', 'year, 'all']
 
