@@ -53,7 +53,8 @@ def filter_post_data(reddit_data_json):
     age_restricted = reddit_data_json[0]['data']['children'][0]['data']['over_18']
     title, img_url, vid_url, audio_url, post_type, permalink = [],[],[],[],[],[]
     title.append(reddit_data_json[0]['data']['children'][0]['data']['title'])
-    post_type.append(reddit_data_json[0]['data']['children'][0]['data']['post_hint'])
+    # post_hint types = "hosted:video", "image", None, "rich:video", "link"
+    # post_type.append(reddit_data_json[0]['data']['children'][0]['data']['post_hint'])
     if reddit_data_json[0]['data']['children'][0]['data']['media']:
         vid_url.append(reddit_data_json[0]['data']['children'][0]['data']['media']['reddit_video']['fallback_url'])
         audio_url.append('https://v.redd.it/' + vid_url[0].split('/')[3] + '/DASH_audio.mp4')
@@ -139,7 +140,7 @@ def make_video(vid_url, audio_url):
         f.write(get.content)
 
     print('encoding started...')
-    # check if video has audio, if it doesnt encode only video
+    # check if video has audio, if it doesnt encode only video. Encoding done with h265
     if os.system(f'ffprobe -i {tmp_video_file} -show_streams -select_streams a -loglevel error') != 0:
         os.system(f'ffmpeg -y -i {tmp_video_file} -i {tmp_audio_file} -vcodec libx265 -crf {video_quality} {result_video}')
     else:
