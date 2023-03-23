@@ -7,7 +7,8 @@ import time
 
 posts_limit = 5
 comments_limit = 30
-best_comments = 2
+best_comments = 3
+video_quality = 30 # values from 24 to 30 recommended
 
 subreddit = 'funny' # subreddit name
 listing = 'top' #['hot', 'top', 'controvercial', 'new', rising]
@@ -56,7 +57,7 @@ def filter_post_data(reddit_data_json):
     if reddit_data_json[0]['data']['children'][0]['data']['media']:
         vid_url.append(reddit_data_json[0]['data']['children'][0]['data']['media']['reddit_video']['fallback_url'])
         audio_url.append('https://v.redd.it/' + vid_url[0].split('/')[3] + '/DASH_audio.mp4')
-        img_url.append()
+        img_url.append(None)
     else:
         img_url.append(reddit_data_json[0]['data']['children'][0]['data']['url'])
 
@@ -125,9 +126,9 @@ def make_video(vid_url, audio_url):
     os.makedirs(tmp_dir, mode=0o777, exist_ok=True)
 
 
-    tmp_video_file = tmp_dir + '/' + 'out_video.mp4'
-    tmp_audio_file = tmp_dir + '/' + 'out_audio.mp3'
-    result_video = tmp_dir + '/' + 'result_video.mp4'
+    tmp_video_file = tmp_dir + '\\' + 'out_video.mp4'
+    tmp_audio_file = tmp_dir + '\\' + 'out_audio.mp3'
+    result_video = tmp_dir + '\\' + 'result_video.mp4'
 
     with open(tmp_video_file, 'wb') as f:
         get = requests.get(vid_url, stream=True)
@@ -137,10 +138,22 @@ def make_video(vid_url, audio_url):
         get = requests.get(audio_url, stream=True)
         f.write(get.content)
 
-    os.system(f'ffmpeg -y -i {tmp_video_file} -i {tmp_audio_file} -c copy {result_video}')
+    print('encoding started...')
+    # check if video has audio, if it doesnt encode only video
+    if os.system(f'ffprobe -i {tmp_video_file} -show_streams -select_streams a -loglevel error') != 0:
+        os.system(f'ffmpeg -y -i {tmp_video_file} -i {tmp_audio_file} -vcodec libx265 -crf {video_quality} {result_video}')
+    else:
+        os.system(f'ffmpeg -y -i {tmp_video_file} -vcodec libx265 -crf 30 {result_video}')
+        print('video has no audio')
+    
     os.remove(tmp_video_file)
     os.remove(tmp_audio_file)
+    print(f'encoding complete, temp files cleaned... encoded video is {result_video}')
     return result_video
 
 
+
+# v = ['https://v.redd.it/hiieroexgcpa1/DASH_720.mp4?source=fallback']
+# a = ['https://v.redd.it/hiieroexgcpa1/DASH_audio.mp4']
+# print(make_video(v[0], a[0]))
 
