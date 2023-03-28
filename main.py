@@ -189,10 +189,11 @@ def send_new_tg_message(channel_id, disable_notification=None):
     # print(post_title)
     # print(picture_list)
     print(video_list)
-    # print(audio_list)
+    print(audio_list)
     # print(source_link)
     # print(comments)
     
+'''
     if video_list:
         try:
             mp4_video = rs.make_video(video_list[0], audio_list[0])
@@ -214,7 +215,7 @@ def send_new_tg_message(channel_id, disable_notification=None):
         send_message(channel_id, post_title, disable_notification)
         print(new_id, post_title, 'post_title sent, there are NO pictures, videos or gifs \n')
 
-
+'''
 
 link = 'http://www.example.com/'
 
