@@ -227,12 +227,12 @@ def get_post_info(reddit_data_json):
 
 
 ##  test multiple images in 1 post
-test = requests.get('https://www.reddit.com/r/commandandconquer/comments/125eg9m/.json?limit=15',headers={'User-agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Safari/537.36)'})
+# test = requests.get('https://www.reddit.com/r/commandandconquer/comments/125eg9m/.json?limit=15',headers={'User-agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Safari/537.36)'})
 
-test = test.json()
+# test = test.json()
 
 
-res = filter_post_data(test)[1]
+# res = filter_post_data(test)[1]
 
-for i in res:
-    print(i)
+# for i in res:
+#     print(i)
