@@ -55,12 +55,26 @@ def filter_post_data(reddit_data_json):
     title.append(reddit_data_json[0]['data']['children'][0]['data']['title'])
     # post_hint types = "hosted:video", "image", None, "rich:video", "link"
     # post_type.append(reddit_data_json[0]['data']['children'][0]['data']['post_hint'])
-    if reddit_data_json[0]['data']['children'][0]['data']['media']:
+    try:
         vid_url.append(reddit_data_json[0]['data']['children'][0]['data']['media']['reddit_video']['fallback_url'])
         audio_url.append('https://v.redd.it/' + vid_url[0].split('/')[3] + '/DASH_audio.mp4')
         img_url.append(None)
-    else:
+    except TypeError as e:
+        print(e, 'no video faund')
+    try:
+        x = reddit_data_json[0]['data']['children'][0]['data']['gallery_data']['items']
+        y = reddit_data_json[0]['data']['children'][0]['data']['media_metadata']
+        for i in range(len(x)):
+            med_id  = x[i]['media_id']
+            temp_link = y[med_id]['s']['u']
+            temp_link = temp_link.replace("amp;", '')
+            img_url.append(temp_link)
+    except KeyError as e:
+        print(e, 'no galery found')
+        pass
+    if not img_url:
         img_url.append(reddit_data_json[0]['data']['children'][0]['data']['url'])
+
 
     return title, img_url, vid_url, audio_url, age_restricted#, post_type
 
@@ -208,3 +222,17 @@ def get_post_info(reddit_data_json):
 
 # print(ups)
 
+
+
+
+
+##  test multiple images in 1 post
+test = requests.get('https://www.reddit.com/r/commandandconquer/comments/125eg9m/.json?limit=15',headers={'User-agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Safari/537.36)'})
+
+test = test.json()
+
+
+res = filter_post_data(test)[1]
+
+for i in res:
+    print(i)
