@@ -10,8 +10,8 @@ comments_limit = 30
 best_comments = 3
 video_quality = 35 # less is more
 
-subreddit = 'funny' # subreddit name
-listing = 'top' #['hot', 'top', 'controvercial', 'new', rising]
+subreddit = 'memes' # subreddit name
+listing = 'hot' #['hot', 'top', 'controvercial', 'new', rising]
 timeframe = 'week'  #['hour', 'day', 'week', 'month', 'year, 'all']
 
 
@@ -32,12 +32,13 @@ def get_latest_post_id(reddit_data_json):
     for i in range(n):
         post_time = reddit_data_json['data']['children'][i]['data']['created']
         post_time = time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(post_time))
-        post_id = reddit_data_json['data']['children'][i]['data']['id']
-        posts[post_id] = post_time
+        post_id = reddit_data_json['data']['children'][i]['data']['id']  # get id 
+        posts[post_id] = post_time  # add key and value to dictionar "posts"
     sorted_ids = dict(sorted(posts.items(), key=lambda item:item[1]))
     for key, value in sorted_ids.items():
         sorted_posts_list.append((key, value))
     return sorted_posts_list[n-1]
+
 
 
 # get comments in a given post by using post id
@@ -167,6 +168,7 @@ def make_video(vid_url, audio_url):
     else:
         os.system(f'ffmpeg -y -i {tmp_video_file} -vcodec libx265 -crf {video_quality} {result_video}')
         print('video has no audio')
+        # result_video = tmp_video_file
     
     # os.remove(tmp_video_file)
     # os.remove(tmp_audio_file)
@@ -195,7 +197,7 @@ a3 = ['https://v.redd.it/v3s462zrqaqa1/DASH_audio.mp4']
 
 
 
-def get_post_info(reddit_data_json):
+def get_post_info_dev(reddit_data_json):
     post_date, ups, titles, link, post_id = [], [], [], [], []
     n = len(reddit_data_json['data']['children'])
     for i in range(n):

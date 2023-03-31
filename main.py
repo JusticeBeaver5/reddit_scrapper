@@ -16,8 +16,9 @@ load_dotenv('.env')
 token = os.environ.get('TOKEN')
 tg_channel = os.environ.get('TG_CHANNEL')
 myChatId = int(os.environ.get('CHATID'))
+subreddits = os.environ.get('SUBREDDITTS').split(',')
 
-update_frequecy = 25*60
+update_frequecy = 2*60
 
 
 URL = f'https://api.telegram.org/bot{token}/'
@@ -64,8 +65,7 @@ def send_images_new(chat_id, image_list, text=None, parse_mode=None, disable_web
         "disable_notification":disable_notification}
     request_url = URL + "sendMediaGroup"
     r = requests.post(request_url, json=answer)
-    # print(r)
-    print(r.json())
+    # print(r.json())
     return r.json()
 
 
@@ -141,8 +141,6 @@ def check_for_new_post(telegram_channel):
             reddit_data.clear()
             reddit_data = [new_id, post_title, picture_list, video_list]
             send_new_tg_message(reddit_data, telegram_channel, disable_notification=True)
-
-
         else:
             print('No new tweets! Old id is ', old_id, 'post =', post_title, 'has links =', picture_list, video_list,'\n')
 
@@ -177,20 +175,14 @@ def send_new_tg_message(channel_id, disable_notification=None):
     # print(post_title)
     # print(picture_list)
     # print(comments)
-    print(source_link)
+    print('source -', source_link)
     print('total number of characters =', int(len(message)) + int(len(post_title)) + int(len(source_link)))
 
-    # send_images_new(channel_id, picture_list, f'*{post_title}*\n\nHere are some top comments:\n\n{message}\n[source]({source_link})', parse_mode='MarkdownV2', disable_web_page_preview=True, disable_notification=True)
-
-
-    # print('message sent!')
-    # '\n'.join(get_the_best_post()[2])
 
     # print(post_title)
     # print(picture_list)
-    print(video_list)
-    print(audio_list)
-    # print(source_link)
+    print('video', video_list)
+    print('audio', audio_list)
     # print(comments)
     
 
@@ -202,27 +194,20 @@ def send_new_tg_message(channel_id, disable_notification=None):
             print('video sent!', new_id, post_title, video_list, '\n')
         except:
             print('ERROR: could not send video', video_list, source_link, '\n')
-    elif picture_list:
+
+    elif picture_list[0][-4:] == '.gif':
+        send_video(channel_id, picture_list[0], f'*{post_title}*\n\nHere are some top comments:\n\n{message}\n[source]({source_link})', parse_mode='MarkdownV2', disable_web_page_preview=True, disable_notification=True)
+        
+    elif picture_list[0][-4:] == '.jpg' or picture_list[0][-5:] == '.jpeg' or picture_list[0][-4:] == '.png':
         send_images_new(channel_id, picture_list, f'*{post_title}*\n\nHere are some top comments:\n\n{message}\n[source]({source_link})', parse_mode='MarkdownV2', disable_web_page_preview=True, disable_notification=True)
-        # send_message(channel_id, f'{post_title}"\n"Here are top-3 comments:\n{comments}"\n"[source]({source_link})', parse_mode='MarkdownV2', disable_web_page_preview=True, disable_notification=True)
-        # send_images(channel_id, picture_list, post_title, disable_notification=True)
-        # send_photo(channel_id, pictures, post_title)
         print('pictures sent!', picture_list, '\n')
-    # elif gif:
-    #     send_video(channel_id, gif[0], post_title, disable_notification)
-    #     print('gif sent!\n')
+
     else:
         send_message(channel_id, post_title, disable_notification)
         print(new_id, post_title, 'post_title sent, there are NO pictures, videos or gifs \n')
 
 
 
-link = 'http://www.example.com/'
-
-
-test = 'test text blabla yada yada'
-
-# mp4_video = 'D:\python\reddit_scrapper_tg_bot\_tmp\result_video.mp4'
 
 @app.route('/', methods=['POST','GET'])
 def index():
@@ -245,29 +230,29 @@ def index():
 
 
 
-# d={}
+d=[]
 
-# for i in zip(twt_list, ch_list):
-#     d[i[0]] = i[1]
+for i in subreddits:
+    d.append(subreddits[i])
 
 
-# def run_threads(dct):
-#     threads = []
-#     for k, v in dct.items():
-#         threads.append(Thread(target=check_for_new_post, args=[k, v], daemon=True))
-#     for thread in threads:
-#         thread.start()
-#         print('running thread',thread.getName(), '\n')
-#     # for thread in threads:
-#     #     thread.join()
+def run_threads(dct):
+    threads = []
+    for k, v in dct.items():
+        threads.append(Thread(target=check_for_new_post, args=[k, v], daemon=True))
+    for thread in threads:
+        thread.start()
+        print('running thread',thread.getName(), '\n')
+    # for thread in threads:
+    #     thread.join()
 
 
 delete_webhook()
 set_webhook(webhook_host)
 
-# run_threads(d)
+run_threads(d)
 
-# print('main thread execution...')
+print('main thread execution...')
 
 
 
