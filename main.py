@@ -113,10 +113,12 @@ def get_channel_post():
 
 
 
-def check_for_new_post(telegram_channel):
-    reddit_data, old_id, new_id, picture_list, video_list, gifs = ([] for i in range(6))
-    reddit_data = rs.get_the_best_post()
+def check_for_new_post(subreddit, telegram_channel):
+    reddit_data, old_id, new_id, picture_list, video_list = ([] for i in range(5))
+    reddit_data = rs.get_the_best_post(subreddit)
     old_id = reddit_data[1][0]
+    # print(reddit_data)
+    # print(old_id)
     # post_title = reddit_data[0][0][0]
     # comments = reddit_data[0][2]
     # picture_list = reddit_data[0][1]
@@ -124,25 +126,28 @@ def check_for_new_post(telegram_channel):
     # audio_list = reddit_data[0][3]
     while True:
         time.sleep(update_frequecy)
-        updated_reddit_data = rs.get_the_best_post()
+        print(f'checking {subreddit}')
+        updated_reddit_data = rs.get_the_best_post(subreddit)
         new_id = updated_reddit_data[1][0]
+        print(new_id)
         # print('runnning on ' ,)
-        # print('reddit data updated!')
+        print('reddit data updated!')
         if new_id != old_id:
-            picture_list.clear()
-            video_list.clear()
+            # picture_list.clear()
+            # video_list.clear()
             # gifs.clear()
             post_title = updated_reddit_data[0][0][0]
             picture_list = updated_reddit_data[0][1]
             video_list = updated_reddit_data[0][2]
             audio_list = updated_reddit_data[0][3]
+            print(post_title, picture_list, video_list, audio_list)
             print('There is a new post with id ', new_id, 'post_title =', post_title,'has links =', picture_list, video_list, '\n')
             old_id = new_id
             reddit_data.clear()
             reddit_data = [new_id, post_title, picture_list, video_list]
             send_new_tg_message(reddit_data, telegram_channel, disable_notification=True)
         else:
-            print('No new tweets! Old id is ', old_id, 'post =', post_title, 'has links =', picture_list, video_list,'\n')
+            print('No new tweets! Old id is ', old_id, '\n')
 
 
 
@@ -157,9 +162,10 @@ table = str.maketrans({"-":r"\-", "]":r"\]",
                        "(":r"\(", ")":r"\)"})
 
 
-def send_new_tg_message(channel_id, disable_notification=None):
+def send_new_tg_message(reddit_data, channel_id, disable_notification=None):
     print('executing function!!')
-    reddit_data = rs.get_the_best_post()
+    # if not reddit_data:
+    #     reddit_data = rs.get_the_best_post(subreddit)
     new_id = reddit_data[1][0]
     post_title = reddit_data[0][0][0]
     picture_list = reddit_data[0][1]
@@ -219,9 +225,11 @@ def index():
             print('received a private message', msg)
             if '/start' in msg:
                 if int(chat_id) == int(myChatId):
-                    # send_message(chat_id, f'{test} *working*', parse_mode='MarkdownV2', disable_notification=True)
+                    send_message(chat_id, '*working*', parse_mode='MarkdownV2', disable_notification=True)
                     # send_video(tg_channel, mp4_video, 'hello', parse_mode='MarkdownV2', disable_web_page_preview=True, disable_notification=True)
-                    send_new_tg_message(tg_channel, disable_notification=True)
+                    # check_for_new_post('NatureIsFuckingLit', tg_channel)
+                    # send_new_tg_message(tg_channel, disable_notification=True)
+                    # print('yada yada yada')
                 else:
                     send_message(chat_id, "you're not allowed to use this bot! 🤨")
         elif 'channel_post' in r:
@@ -232,14 +240,15 @@ def index():
 
 d=[]
 
-for i in subreddits:
-    d.append(subreddits[i])
+for item in subreddits:
+    print('executing following subreddits', item)
+    d.append(item)
 
 
-def run_threads(dct):
+def run_threads(lst):
     threads = []
-    for k, v in dct.items():
-        threads.append(Thread(target=check_for_new_post, args=[k, v], daemon=True))
+    for item in lst:
+        threads.append(Thread(target=check_for_new_post, args=[item, tg_channel], daemon=True))
     for thread in threads:
         thread.start()
         print('running thread',thread.getName(), '\n')
@@ -255,8 +264,8 @@ run_threads(d)
 print('main thread execution...')
 
 
+# check_for_new_post('funny', 'hot', 10, 'day', tg_channel)
 
 
 if __name__ == '__main__':
-    # print(rs.get_the_best_post()[1][0])
     app.run()

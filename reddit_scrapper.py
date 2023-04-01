@@ -10,15 +10,15 @@ comments_limit = 30
 best_comments = 3
 video_quality = 35 # less is more
 
-subreddit = 'memes' # subreddit name
-listing = 'hot' #['hot', 'top', 'controvercial', 'new', rising]
-timeframe = 'week'  #['hour', 'day', 'week', 'month', 'year, 'all']
+test_subreddit = 'memes' # subreddit name
+test_listing = 'hot' #['hot', 'top', 'controvercial', 'new', rising]
+test_timeframe = 'day'  #['hour', 'day', 'week', 'month', 'year, 'all']
 
 
 
 # get reddit post
-def request_subreddit_posts(subreddit, listing, limit, timeframe):
-    url = f'https://www.reddit.com/r/{subreddit}/{listing}.json?limit={limit}&t={timeframe}'
+def request_subreddit_posts(subreddit, listing, posts_limit, timeframe):
+    url = f'https://www.reddit.com/r/{subreddit}/{listing}.json?limit={posts_limit}&t={timeframe}'
     request = requests.get(url,
                         headers={'User-agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Safari/537.36)'})
     return request.json()
@@ -42,7 +42,7 @@ def get_latest_post_id(reddit_data_json):
 
 
 # get comments in a given post by using post id
-def request_post_data(post_id, comments_limit):
+def request_post_data(subreddit, post_id, comments_limit):
     url = f'https://www.reddit.com/r/{subreddit}/comments/{post_id}.json?limit={comments_limit}'
     request = requests.get(url,
                         headers={'User-agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Safari/537.36)'})
@@ -61,7 +61,7 @@ def filter_post_data(reddit_data_json):
         audio_url.append('https://v.redd.it/' + vid_url[0].split('/')[3] + '/DASH_audio.mp4')
         img_url.append(None)
     except TypeError as e:
-        print(e, 'no video faund')
+        print(e, 'no video found')
     try:
         x = reddit_data_json[0]['data']['children'][0]['data']['gallery_data']['items']
         y = reddit_data_json[0]['data']['children'][0]['data']['media_metadata']
@@ -75,7 +75,6 @@ def filter_post_data(reddit_data_json):
         pass
     if not img_url:
         img_url.append(reddit_data_json[0]['data']['children'][0]['data']['url'])
-
 
     return title, img_url, vid_url, audio_url, age_restricted#, post_type
 
@@ -95,11 +94,11 @@ def filter_comments(post_comments_json):
 
 
 
-def get_the_best_post():
+def get_the_best_post(subreddit):
     comments_list = []
-    data = request_subreddit_posts(subreddit, 'top', posts_limit, 'day')
+    data = request_subreddit_posts(subreddit, test_listing, posts_limit, test_timeframe)
     latest_id = get_latest_post_id(data)
-    post_data = request_post_data(latest_id[0], comments_limit)
+    post_data = request_post_data(subreddit, latest_id[0], comments_limit)
     media = filter_post_data(post_data)
     comments = filter_comments(post_data)
     for i in comments:
