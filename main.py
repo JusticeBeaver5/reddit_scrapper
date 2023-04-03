@@ -18,7 +18,7 @@ tg_channel = os.environ.get('TG_CHANNEL')
 myChatId = int(os.environ.get('CHATID'))
 subreddits = os.environ.get('SUBREDDITTS').split(',')
 
-update_frequecy = 2*60
+update_frequecy = 1*60
 
 
 URL = f'https://api.telegram.org/bot{token}/'
@@ -116,6 +116,7 @@ def get_channel_post():
 def check_for_new_post(subreddit, telegram_channel):
     reddit_data, old_id, new_id, picture_list, video_list = ([] for i in range(5))
     reddit_data = rs.get_the_best_post(subreddit)
+    print('reddit data:',reddit_data)
     old_id = reddit_data[1][0]
     # print(reddit_data)
     # print(old_id)
@@ -133,9 +134,6 @@ def check_for_new_post(subreddit, telegram_channel):
         # print('runnning on ' ,)
         print('reddit data updated!')
         if new_id != old_id:
-            # picture_list.clear()
-            # video_list.clear()
-            # gifs.clear()
             post_title = updated_reddit_data[0][0][0]
             picture_list = updated_reddit_data[0][1]
             video_list = updated_reddit_data[0][2]
@@ -144,7 +142,7 @@ def check_for_new_post(subreddit, telegram_channel):
             print('There is a new post with id ', new_id, 'post_title =', post_title,'has links =', picture_list, video_list, '\n')
             old_id = new_id
             reddit_data.clear()
-            reddit_data = [new_id, post_title, picture_list, video_list]
+            reddit_data = updated_reddit_data
             send_new_tg_message(reddit_data, telegram_channel, disable_notification=True)
         else:
             print('No new tweets! Old id is ', old_id, '\n')
@@ -166,6 +164,7 @@ def send_new_tg_message(reddit_data, channel_id, disable_notification=None):
     print('executing function!!')
     # if not reddit_data:
     #     reddit_data = rs.get_the_best_post(subreddit)
+    print(f'updated data: {reddit_data}')
     new_id = reddit_data[1][0]
     post_title = reddit_data[0][0][0]
     picture_list = reddit_data[0][1]
@@ -178,10 +177,10 @@ def send_new_tg_message(reddit_data, channel_id, disable_notification=None):
     message = comments.translate(table)
     post_title = post_title.translate(table)
 
+    print(f'source: {source_link}')
     # print(post_title)
     # print(picture_list)
     # print(comments)
-    print('source -', source_link)
     print('total number of characters =', int(len(message)) + int(len(post_title)) + int(len(source_link)))
 
 
@@ -241,7 +240,7 @@ def index():
 d=[]
 
 for item in subreddits:
-    print('executing following subreddits', item)
+    print(f'executing following subreddits: "{item}"')
     d.append(item)
 
 
@@ -259,9 +258,9 @@ def run_threads(lst):
 delete_webhook()
 set_webhook(webhook_host)
 
-run_threads(d)
-
 print('main thread execution...')
+
+run_threads(d)
 
 
 # check_for_new_post('funny', 'hot', 10, 'day', tg_channel)

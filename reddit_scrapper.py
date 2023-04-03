@@ -11,7 +11,7 @@ best_comments = 3
 video_quality = 35 # less is more
 
 test_subreddit = 'memes' # subreddit name
-test_listing = 'hot' #['hot', 'top', 'controvercial', 'new', rising]
+test_listing = 'new' #['hot', 'top', 'controvercial', 'new', rising]
 test_timeframe = 'day'  #['hour', 'day', 'week', 'month', 'year, 'all']
 
 
@@ -83,29 +83,38 @@ def filter_post_data(reddit_data_json):
 # get 5 best comments under post
 def filter_comments(post_comments_json):
     comment_list = []
-    stickied = post_comments_json[1]['data']['children'][0]['data']['stickied']
-    for i in range(0 + int(stickied), best_comments + int(stickied)):
-        author = post_comments_json[1]['data']['children'][i]['data']['author']
-        ups = post_comments_json[1]['data']['children'][i]['data']['ups']
-        if author != '[deleted]':
-            comment = post_comments_json[1]['data']['children'][i]['data']['body']
-            comment_list.append(f'"{comment}" -by {author}, {ups} upvotes\n--------------')
+    if post_comments_json[1]['data']['children']:
+        stickied = post_comments_json[1]['data']['children'][0]['data']['stickied']
+        if len(post_comments_json[1]['data']['children']) > best_comments:
+            for i in range(0 + int(stickied), best_comments + int(stickied)):
+                author = post_comments_json[1]['data']['children'][i]['data']['author']
+                ups = post_comments_json[1]['data']['children'][i]['data']['ups']
+                if author != '[deleted]':
+                    comment = post_comments_json[1]['data']['children'][i]['data']['body']
+                    comment_list.append(f'"{comment}" -by {author}, {ups} upvotes\n--------------')
     return comment_list
 
 
 
 def get_the_best_post(subreddit):
+    reddit_data = []
     comments_list = []
     data = request_subreddit_posts(subreddit, test_listing, posts_limit, test_timeframe)
     latest_id = get_latest_post_id(data)
+    print(f'id is {latest_id}\n \n')
     post_data = request_post_data(subreddit, latest_id[0], comments_limit)
+    # print(post_data)
     media = filter_post_data(post_data)
+    print(f'media:{media}\n')
     comments = filter_comments(post_data)
+    print(f'media:{comments}\n')
     for i in comments:
         comments_list.append(i)
     comments_list.append(f'https://www.reddit.com/r/{subreddit}/comments/{latest_id[0]}')
-    return media, latest_id, comments_list
-
+    reddit_data.append(media)
+    reddit_data.append(latest_id)
+    reddit_data.append(comments_list)
+    return reddit_data
 
 # d = get_the_best_post()
 # source_link = d[2][-1]
