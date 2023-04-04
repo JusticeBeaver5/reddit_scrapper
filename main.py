@@ -18,7 +18,7 @@ tg_channel = os.environ.get('TG_CHANNEL')
 myChatId = int(os.environ.get('CHATID'))
 subreddits = os.environ.get('SUBREDDITTS').split(',')
 
-update_frequecy = 1*60
+update_frequecy = 1*60*60
 
 
 URL = f'https://api.telegram.org/bot{token}/'

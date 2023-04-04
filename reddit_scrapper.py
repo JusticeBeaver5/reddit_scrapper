@@ -10,8 +10,8 @@ comments_limit = 30
 best_comments = 3
 video_quality = 35 # less is more
 
-test_subreddit = 'memes' # subreddit name
-test_listing = 'new' #['hot', 'top', 'controvercial', 'new', rising]
+test_subreddit = 'funny' # subreddit name
+test_listing = 'hot' #['hot', 'top', 'controvercial', 'new', rising]
 test_timeframe = 'day'  #['hour', 'day', 'week', 'month', 'year, 'all']
 
 
@@ -26,18 +26,32 @@ def request_subreddit_posts(subreddit, listing, posts_limit, timeframe):
 
 # get posts and sort them by date, return the latest one.
 def get_latest_post_id(reddit_data_json):
-    sorted_posts_list = []
-    posts = {}
-    n = len(reddit_data_json['data']['children'])
-    for i in range(n):
-        post_time = reddit_data_json['data']['children'][i]['data']['created']
-        post_time = time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(post_time))
-        post_id = reddit_data_json['data']['children'][i]['data']['id']  # get id 
-        posts[post_id] = post_time  # add key and value to dictionar "posts"
-    sorted_ids = dict(sorted(posts.items(), key=lambda item:item[1]))
-    for key, value in sorted_ids.items():
-        sorted_posts_list.append((key, value))
-    return sorted_posts_list[n-1]
+    post_id = reddit_data_json['data']['children'][2]['data']['id']
+    post_time = reddit_data_json['data']['children'][2]['data']['created']
+    post_time = time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(post_time))
+    return post_id, post_time
+
+    ### sort posts by time and get the latest one.
+    # sorted_posts_list = []
+    # posts = {}
+    # n = len(reddit_data_json['data']['children'])
+    # for i in range(n):
+    #     post_time = reddit_data_json['data']['children'][i]['data']['created']
+    #     post_time = time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(post_time))
+    #     post_id = reddit_data_json['data']['children'][i]['data']['id']  # get id 
+    #     posts[post_id] = post_time  # add key and value to dictionary "posts"
+    # sorted_ids = dict(sorted(posts.items(), key=lambda item:item[1]))
+    # for key, value in sorted_ids.items():
+    #     sorted_posts_list.append((key, value))
+    # return sorted_posts_list[n-1]
+
+
+# x = request_subreddit_posts('funny', 'hot', 3, 'day')
+
+# # print(x)
+# post_id = get_latest_post_id(x)
+
+# print(post_id)
 
 
 
@@ -151,55 +165,39 @@ def make_video(vid_url, audio_url):
     tmp_audio_file = tmp_dir + '\\' + 'out_audio.mp3'
     result_video = tmp_dir + '\\' + 'result_video.mp4'
 
+    
+    rqst_audio = requests.get(audio_url, stream=True)
+    audio_size = int(rqst_audio.headers['Content-Length'])
+    print(f'audio size is {audio_size} bites')
+
+    if audio_size < 1024:
+        print(f'video has no audio; audio size is {audio_size} bytes')
+        has_audio = False
+
     with open(tmp_video_file, 'wb') as f:
         r = requests.get(vid_url, stream=True)
         f.write(r.content)
 
-    with open(tmp_audio_file, 'wb') as f:
-        r = requests.get(audio_url, stream=True)
-        size = int(r.headers['Content-Length'])
-        print(f'audio size is {size} bites')
-        if size < 1024:
-            print(f'video has no audio; audio size is {size} bytes')
-            has_audio = False
-        f.write(r.content)
-
-    print('encoding started...')
-    print('video has audio?', has_audio)
-
+    if has_audio:
+        with open(tmp_audio_file, 'wb') as f:
+            f.write(rqst_audio.content)
 
     # check if video has audio, if it doesnt encode only video. Encoding done with h265
     start = time.time()
     if has_audio:
         print('encoding video with audio')
         os.system(f'ffmpeg -y -i {tmp_video_file} -i {tmp_audio_file} -vcodec libx265 -crf {video_quality} {result_video} -loglevel error')
+        os.remove(tmp_video_file)
+        os.remove(tmp_audio_file)
+        print(f'encoding complete, temp files cleaned... encoded video is {result_video}')
+        print('encoding time', time.time() - start)
     else:
-        os.system(f'ffmpeg -y -i {tmp_video_file} -vcodec libx265 -crf {video_quality} {result_video}')
+        # os.system(f'ffmpeg -y -i {tmp_video_file} -vcodec libx265 -crf {video_quality} {result_video}')
         print('video has no audio')
-        # result_video = tmp_video_file
-    
-    # os.remove(tmp_video_file)
-    # os.remove(tmp_audio_file)
-    print(f'encoding complete, temp files cleaned... encoded video is {result_video}')
-    print('encoding time', time.time() - start)
+        result_video = vid_url
+
     return result_video
 
-
-
-
-
-v2 = ['https://v.redd.it/ymbka65obbqa1/DASH_480.mp4?source=fallback']
-a2 = ['https://v.redd.it/ymbka65obbqa1/DASH_audio.mp4']
-
-v = ['https://v.redd.it/njsk41ake4w31/DASH_1080?source=fallback']
-# print('audio url =', 'https://v.redd.it/' + v[0].split('/')[3] + '/DASH_audio.mp4')
-a = ['https://v.redd.it/njsk41ake4w31/DASH_audio.mp4']
-
-v3 = ['https://v.redd.it/v3s462zrqaqa1/DASH_1080.mp4?source=fallback']
-a3 = ['https://v.redd.it/v3s462zrqaqa1/DASH_audio.mp4']
-
-# print(a)
-# make_video(v3[0], a3[0])
 
 
 
@@ -237,6 +235,8 @@ def get_post_info_dev(reddit_data_json):
 
 
 ##  test multiple images in 1 post
+
+
 # test = requests.get('https://www.reddit.com/r/commandandconquer/comments/125eg9m/.json?limit=15',headers={'User-agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Safari/537.36)'})
 
 # test = test.json()
@@ -246,3 +246,24 @@ def get_post_info_dev(reddit_data_json):
 
 # for i in res:
 #     print(i)
+
+
+
+
+
+
+
+v1 = ['https://v.redd.it/8gatsmqcauoa1/DASH_720.mp4?source=fallback']
+a1 = ['https://v.redd.it/8gatsmqcauoa1/DASH_audio.mp4']
+
+v2 = ['https://v.redd.it/njsk41ake4w31/DASH_1080?source=fallback']
+
+a2 = ['https://v.redd.it/njsk41ake4w31/DASH_audio.mp4']
+
+v3 = ['https://v.redd.it/v3s462zrqaqa1/DASH_1080.mp4?source=fallback']
+a3 = ['https://v.redd.it/v3s462zrqaqa1/DASH_audio.mp4']
+
+# print(a)
+# make_video(v3[0], a3[0])
+
+
