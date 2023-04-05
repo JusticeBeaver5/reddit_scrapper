@@ -24,7 +24,7 @@ update_frequecy = 1*60*60
 URL = f'https://api.telegram.org/bot{token}/'
 webhook_host = os.environ.get('HOST')
 
-
+silent = True
 
 
 # *[source](http://www.example.com/)*&parse_mode=MarkdownV2
@@ -118,13 +118,8 @@ def check_for_new_post(subreddit, telegram_channel):
     reddit_data = rs.get_the_best_post(subreddit)
     print('reddit data:',reddit_data)
     old_id = reddit_data[1][0]
-    # print(reddit_data)
-    # print(old_id)
-    # post_title = reddit_data[0][0][0]
-    # comments = reddit_data[0][2]
-    # picture_list = reddit_data[0][1]
-    # video_list = reddit_data[0][2]
-    # audio_list = reddit_data[0][3]
+    # reddit_data = rs.get_the_best_post(subreddit)
+    # send_new_tg_message(reddit_data, telegram_channel, silent)
     while True:
         time.sleep(update_frequecy)
         print(f'checking {subreddit}')
@@ -134,16 +129,16 @@ def check_for_new_post(subreddit, telegram_channel):
         # print('runnning on ' ,)
         print('reddit data updated!')
         if new_id != old_id:
-            post_title = updated_reddit_data[0][0][0]
-            picture_list = updated_reddit_data[0][1]
-            video_list = updated_reddit_data[0][2]
-            audio_list = updated_reddit_data[0][3]
-            print(post_title, picture_list, video_list, audio_list)
-            print('There is a new post with id ', new_id, 'post_title =', post_title,'has links =', picture_list, video_list, '\n')
-            old_id = new_id
+            # post_title = updated_reddit_data[0][0][0]
+            # picture_list = updated_reddit_data[0][1]
+            # video_list = updated_reddit_data[0][2]
+            # audio_list = updated_reddit_data[0][3]
+            # print(post_title, picture_list, video_list, audio_list)
+            # print('There is a new post with id ', new_id, 'post_title =', post_title,'has links =', picture_list, video_list, '\n')
+            # old_id = new_id
             reddit_data.clear()
             reddit_data = updated_reddit_data
-            send_new_tg_message(reddit_data, telegram_channel, disable_notification=True)
+            send_new_tg_message(reddit_data, telegram_channel, silent)
         else:
             print('No new tweets! Old id is ', old_id, '\n')
 
@@ -160,7 +155,7 @@ table = str.maketrans({"-":r"\-", "]":r"\]",
                        "(":r"\(", ")":r"\)"})
 
 
-def send_new_tg_message(reddit_data, channel_id, disable_notification=None):
+def send_new_tg_message(reddit_data, channel_id, silent):
     print('executing function!!')
     # if not reddit_data:
     #     reddit_data = rs.get_the_best_post(subreddit)
@@ -173,6 +168,7 @@ def send_new_tg_message(reddit_data, channel_id, disable_notification=None):
     source_link = reddit_data[2][-1]
     comments = reddit_data[2][:-1]
     comments = '\n'.join(comments)
+    subreddit = reddit_data[0][-1]
 
     message = comments.translate(table)
     post_title = post_title.translate(table)
@@ -195,20 +191,20 @@ def send_new_tg_message(reddit_data, channel_id, disable_notification=None):
         try:
             mp4_video = rs.make_video(video_list[0], audio_list[0])
             mp4_video = fh.upload_file(mp4_video)
-            send_video(channel_id, mp4_video, f'*{post_title}*\n\nHere are some top comments:\n\n{message}\n[source]({source_link})', parse_mode='MarkdownV2', disable_web_page_preview=True, disable_notification=True)
+            send_video(channel_id, mp4_video, f'*{post_title}*\n\nHere are some top comments:\n\n{message}\n[*source \\- {subreddit}*]({source_link})', parse_mode='MarkdownV2', disable_web_page_preview=True, disable_notification=silent)
             print('video sent!', new_id, post_title, video_list, '\n')
         except:
             print('ERROR: could not send video', video_list, source_link, '\n')
 
     elif picture_list[0][-4:] == '.gif':
-        send_video(channel_id, picture_list[0], f'*{post_title}*\n\nHere are some top comments:\n\n{message}\n[source]({source_link})', parse_mode='MarkdownV2', disable_web_page_preview=True, disable_notification=True)
+        send_video(channel_id, picture_list[0], f'*{post_title}*\n\nHere are some top comments:\n\n{message}\n[*source \\- {subreddit}*]({source_link})', parse_mode='MarkdownV2', disable_web_page_preview=True, disable_notification=silent)
         
     elif picture_list[0][-4:] == '.jpg' or picture_list[0][-5:] == '.jpeg' or picture_list[0][-4:] == '.png':
-        send_images_new(channel_id, picture_list, f'*{post_title}*\n\nHere are some top comments:\n\n{message}\n[source]({source_link})', parse_mode='MarkdownV2', disable_web_page_preview=True, disable_notification=True)
+        send_images_new(channel_id, picture_list, f'*{post_title}*\n\nHere are some top comments:\n\n{message}\n[*source \\- {subreddit}*]({source_link})', parse_mode='MarkdownV2', disable_web_page_preview=True, disable_notification=silent)
         print('pictures sent!', picture_list, '\n')
 
     else:
-        send_message(channel_id, post_title, disable_notification)
+        send_message(channel_id, f'*{post_title}*\n\nHere are some top comments:\n\n{message}\n[*source \\- {subreddit}*]({source_link})', parse_mode='MarkdownV2', disable_web_page_preview=True, disable_notification=silent)
         print(new_id, post_title, 'post_title sent, there are NO pictures, videos or gifs \n')
 
 
@@ -224,11 +220,7 @@ def index():
             print('received a private message', msg)
             if '/start' in msg:
                 if int(chat_id) == int(myChatId):
-                    send_message(chat_id, '*working*', parse_mode='MarkdownV2', disable_notification=True)
-                    # send_video(tg_channel, mp4_video, 'hello', parse_mode='MarkdownV2', disable_web_page_preview=True, disable_notification=True)
-                    # check_for_new_post('NatureIsFuckingLit', tg_channel)
-                    # send_new_tg_message(tg_channel, disable_notification=True)
-                    # print('yada yada yada')
+                    send_message(chat_id, '*working*', parse_mode='MarkdownV2', disable_notification=silent)
                 else:
                     send_message(chat_id, "you're not allowed to use this bot! 🤨")
         elif 'channel_post' in r:
@@ -261,9 +253,6 @@ set_webhook(webhook_host)
 print('main thread execution...')
 
 run_threads(d)
-
-
-# check_for_new_post('funny', 'hot', 10, 'day', tg_channel)
 
 
 if __name__ == '__main__':
