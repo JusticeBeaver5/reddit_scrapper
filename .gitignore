@@ -3,8 +3,5 @@ _tmp/*
 data.json
 comments.json
 .env
-__pycache__/*
-__pycache__/reddit_scrapper.cpython-38.pyc
-__pycache__/main.cpython-38.pyc
-data_sheet.xlsx
-data_sheet.xlsx
+**.pyc
+**.xlsx
