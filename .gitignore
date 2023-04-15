@@ -1,7 +1,8 @@
 .venv/*
 _tmp/*
-data.json
-comments.json
+*.json
+*.json
 .env
 **.pyc
 **.xlsx
+*sandbox.py
