@@ -91,7 +91,7 @@ def filter_post_data(reddit_data_json):
     if not img_url:
         img_url.append(reddit_data_json[0]['data']['children'][0]['data']['url'])
 
-    return title, img_url, vid_url, audio_url, age_restricted, subreddit #post_type
+    return [title, img_url, vid_url, audio_url, [age_restricted], subreddit] #post_type
 
 
 

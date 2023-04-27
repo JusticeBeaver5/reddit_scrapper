@@ -8,6 +8,7 @@ import os
 from threading import Thread
 import reddit_scrapper as rs
 import file_handler as fh
+import csv
 
 app = Flask(__name__)
 
@@ -17,15 +18,14 @@ token = os.environ.get('TOKEN')
 tg_channel = os.environ.get('TG_CHANNEL')
 myChatId = int(os.environ.get('CHATID'))
 subreddits = os.environ.get('SUBREDDITTS').split(',')
-
-update_frequecy = 1*60*60
-
+row_count = 0
+max_rows = 10
+silent = True
+update_frequecy = 60
+threads_start_offset = 10
 
 URL = f'https://api.telegram.org/bot{token}/'
 webhook_host = os.environ.get('HOST')
-
-silent = True
-
 
 # *[source](http://www.example.com/)*&parse_mode=MarkdownV2
 
@@ -116,17 +116,25 @@ def get_channel_post():
 def check_for_new_post(subreddit, telegram_channel):
     reddit_data, old_id, new_id, picture_list, video_list = ([] for i in range(5))
     reddit_data = rs.get_the_best_post(subreddit)
-    print('reddit data:',reddit_data)
+    # print('reddit data:',reddit_data)
     old_id = reddit_data[1][0]
     # reddit_data = rs.get_the_best_post(subreddit)
     # send_new_tg_message(reddit_data, telegram_channel, silent)
     while True:
+        if row_count > max_rows:
+            with open('database.csv', 'w', encoding='utf-8') as file:
+                file.truncate()
+                print('csv file emptied')
         time.sleep(update_frequecy)
         print(f'checking {subreddit}')
         updated_reddit_data = rs.get_the_best_post(subreddit)
         new_id = updated_reddit_data[1][0]
-        print(new_id)
+        print(f'updated reddit data: {updated_reddit_data[0][0][0], updated_reddit_data[1][0]}')
+
+        if not read_csv(updated_reddit_data[0][0][0]):
+            write_to_csv([[updated_reddit_data[0][0][0], updated_reddit_data[1][0]]])
         # print('runnning on ' ,)
+
         print('reddit data updated!')
         if new_id != old_id:
             # post_title = updated_reddit_data[0][0][0]
@@ -138,21 +146,23 @@ def check_for_new_post(subreddit, telegram_channel):
             # old_id = new_id
             reddit_data.clear()
             reddit_data = updated_reddit_data
-            send_new_tg_message(reddit_data, telegram_channel, silent)
+            # send_new_tg_message(reddit_data, telegram_channel, silent)
         else:
             print('No new tweets! Old id is ', old_id, '\n')
 
 
 
 
-table = str.maketrans({"-":r"\-", "]":r"\]",
-                       "[":r"\]", "?":r"\?",
-                       "\\":r"\\", "^":r"\^", 
-                       "$":r"\$", "*":r"\*", 
-                       ".":r"\.", "'":r"\'", 
-                       "&":r"\&", "_":r"\_",
-                       ",":r"\,", "!":r"\!",
-                       "(":r"\(", ")":r"\)"})
+table = str.maketrans(
+    {"-":r"\-", "]":r"\]",
+    "[":r"\]", "?":r"\?",
+    "\\":r"\\", "^":r"\^", 
+    "$":r"\$", "*":r"\*", 
+    ".":r"\.", "'":r"\'", 
+    "&":r"\&", "_":r"\_",
+    ",":r"\,", "!":r"\!",
+    "(":r"\(", ")":r"\)"}
+    )
 
 
 def send_new_tg_message(reddit_data, channel_id, silent):
@@ -207,7 +217,23 @@ def send_new_tg_message(reddit_data, channel_id, silent):
         send_message(channel_id, f'*{post_title}*\n\nHere are some top comments:\n\n{message}\n[*source \\- {subreddit}*]({source_link})', parse_mode='MarkdownV2', disable_web_page_preview=True, disable_notification=silent)
         print(new_id, post_title, 'post_title sent, there are NO pictures, videos or gifs \n')
 
+def write_to_csv(data):
+    with open('database.csv','a', encoding='utf-8') as file:
+        writer = csv.writer(file, delimiter=',', lineterminator = '\n')
+        writer.writerows(data)
 
+
+def read_csv(line):
+    with open('database.csv', 'r', encoding='utf-8') as file:
+        reader = csv.reader(file)
+        match_found = False
+        global row_count 
+        for row in reader:
+            row_count += 1
+            if line in row:
+                print('Match!')
+                match_found = True
+    return match_found
 
 
 @app.route('/', methods=['POST','GET'])
@@ -241,6 +267,7 @@ def run_threads(lst):
     for item in lst:
         threads.append(Thread(target=check_for_new_post, args=[item, tg_channel], daemon=True))
     for thread in threads:
+        time.sleep(threads_start_offset)
         thread.start()
         print('running thread',thread.getName(), '\n')
     # for thread in threads:

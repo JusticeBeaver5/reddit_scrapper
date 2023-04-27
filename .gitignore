@@ -6,3 +6,5 @@ _tmp/*
 **.pyc
 **.xlsx
 *sandbox.py
+database.csv
+csv_database_sandbox.py
