@@ -70,8 +70,8 @@ class RedditPost:
                 temp_link = y[med_id]['s']['u']
                 temp_link = temp_link.replace("amp;", '')
                 img_url.append(temp_link)
-        except KeyError as e:
-            print(e, 'no galery found')
+        except KeyError as error:
+            print(error, 'no galery found')
             pass
         if not img_url:
             img_url.append(request.json()[0]['data']['children'][0]['data']['url'])
