@@ -53,8 +53,9 @@ class RedditPost:
             'User-agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Safari/537.36)'})
 
         age_restricted = request.json()[0]['data']['children'][0]['data']['over_18']
-        title, img_url, vid_url, audio_url, post_type, subreddit = [],[],[],[],[],[]
+        title, img_url, vid_url, audio_url, post_id, subreddit = [],[],[],[],[],[]
         title.append(request.json()[0]['data']['children'][0]['data']['title'])
+        post_id.append(request.json()[0]['data']['children'][0]['data']['id'])
         subreddit.append(request.json()[0]['data']['children'][0]['data']['subreddit_name_prefixed'])
         try:
             vid_url.append(request.json()[0]['data']['children'][0]['data']['media']['reddit_video']['fallback_url'])
@@ -88,7 +89,7 @@ class RedditPost:
                         comment_list.append(f'"{comment}" -by {author}\n--------------')
                         # comment_list.append(f'"{comment}" -by {author}, {ups} upvotes\n--------------') # comments with upvotes 
 
-        return [title, img_url, vid_url, audio_url, [age_restricted], subreddit, comment_list] #post_type
+        return [title, post_id, img_url, vid_url, audio_url, [age_restricted], subreddit, comment_list] #post_type
 
 
 
