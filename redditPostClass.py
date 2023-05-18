@@ -1,9 +1,3 @@
-# import requests
-# import json
-import os
-import datetime
-import time
-
 
 posts_limit = 5
 comments_limit = 30
