@@ -19,7 +19,6 @@ class RedditPost:
         self.best_comments = 5
 
 
-
     # get reddit post
     def request_subreddit_posts(self):
         '''Get list of posts in provided subreddit'''
@@ -46,7 +45,6 @@ class RedditPost:
     def get_post_data(self):
 
         '''this method makes request to get post title, any images video or gif files and top comments in the post'''
-
 
         url = f'https://www.reddit.com/r/{self.subreddit}/comments/{self.get_post_id()}.json?limit={self.max_comments}'
         request = self.requests.get(url, headers={
