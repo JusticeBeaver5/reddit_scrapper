@@ -1,8 +1,4 @@
 
-posts_limit = 5
-comments_limit = 30
-best_comments = 3
-video_quality = 35 # less is more
 
 test_subreddit = 'funny' # subreddit name
 test_filter = 'hot' #['hot', 'top', 'controvercial', 'new', rising]
@@ -14,12 +10,14 @@ class RedditPost:
     import json
     import requests
 
-    def __init__(self, subreddit, filter, posts_limit=1, timeframe=None, comments_limit=None):
+    def __init__(self, subreddit, filter, posts_limit=1, timeframe=None, max_comments=20, best_comments=None):
         self.subreddit = subreddit
         self.filter = filter
         self.posts_limit = posts_limit
         self.timeframe = timeframe
-        self.comments_limit = comments_limit
+        self.max_comments = max_comments
+        self.best_comments = 5
+
 
 
     # get reddit post
@@ -46,10 +44,11 @@ class RedditPost:
 
     # get titles comments, images and video urls
     def get_post_data(self):
+
         '''this method makes request to get post title, any images video or gif files and top comments in the post'''
 
 
-        url = f'https://www.reddit.com/r/{self.subreddit}/comments/{self.get_post_id()}.json?limit={self.comments_limit}'
+        url = f'https://www.reddit.com/r/{self.subreddit}/comments/{self.get_post_id()}.json?limit={self.max_comments}'
         request = self.requests.get(url, headers={
             'User-agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Safari/537.36)'})
 
@@ -78,11 +77,10 @@ class RedditPost:
             img_url.append(request.json()[0]['data']['children'][0]['data']['url'])
 
         comment_list = []
-
         if request.json()[1]['data']['children']:
             stickied = request.json()[1]['data']['children'][0]['data']['stickied']
-            if len(request.json()[1]['data']['children']) > best_comments:
-                for i in range(0 + int(stickied), best_comments + int(stickied)):
+            if len(request.json()[1]['data']['children']) > self.best_comments:
+                for i in range(0 + int(stickied), self.best_comments + int(stickied)):
                     author = request.json()[1]['data']['children'][i]['data']['author']
                     ups = request.json()[1]['data']['children'][i]['data']['ups']
                     if author != '[deleted]':
