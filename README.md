@@ -1,3 +1,5 @@
-This is a reddit scrapper telegram bot
+Reddit scrapper telegram bot made with Python using Telegram API
 
-waitress-serve --listen=*:5000 main:app
+to run execute: waitress-serve --listen=*:5000 main:app
+
+requires .env file with configured webhook URL, bot token, telegram channel, your personal chat_id (to prevent unauthorized access).
